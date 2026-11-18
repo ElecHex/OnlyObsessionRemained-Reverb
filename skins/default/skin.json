@@ -1,0 +1,121 @@
+// OnlyObsessionRemained 皮肤清单（内置默认皮肤）
+//
+// 这份文件就是"当前外观"的完整描述：颜色、字体、每个元素的位置尺寸与文本。
+// 你可以直接改它来做自己的皮肤；填写贴图槽位就能把矢量控件换成你的 PNG。
+// 完整规范见 docs/skin-guide.md。
+//
+// 支持 // 行注释（打包器会先剥掉注释再解析）。
+// 任何没写的元素都会回退到代码里的内置默认值，所以这份清单可以只写你要改的部分。
+
+{
+  "name": "default",
+  "canvas": { "width": 720, "height": 392 },
+
+  "colors": {
+    // HUD 语义 token（docs/ui-style-guide.md §2.1 / §11）。控件的矢量画法读这一套：
+    // 清单里写了就用这里的值，没写就落到代码里的规范默认值。
+    "void":        "#050408",   // 最深黑：缝隙、输入区
+    "base":        "#0B0914",   // 座舱底色
+    "panel":       "#161327",   // 面板主色
+    "panelLit":    "#232040",   // 受光面板 / 内嵌块
+    "structure":   "#6E6A88",   // 结构线、分隔线
+    "structureHi": "#B4B0C9",   // 边缘高光、倒角亮边
+    "text":        "#D8D4E6",   // 主文字、数值
+    "textDim":     "#8A86A0",   // 次要标签、刻度
+    "copper":      "#FFFFFF",   // 白色强调：仪表外圈、推子已填充段、推子头
+    "copperHi":    "#FFFFFF",   // 白色强调：值弧、高光
+    "amber":       "#FFFFFF",   // 白色强调：指针、数值
+    "alert":       "#B22F45",   // 警戒细线（输入框聚焦）
+
+    // 旧名字：窗口底色与文字仍在用，其余保留为兼容名并指到等价的 HUD 色 ——
+    // 免得清单里出现"看着像在用、其实没人读"的值
+    "background":  "base",
+    "outline":     "structure",
+    "accent":      "copper",
+    "textBox":     "void",
+    "disabled":    "textDim"
+  },
+
+  "fonts": {
+    "title": { "size": 16.0, "bold": true },
+    "label": { "size": 13.0 },
+    "value": { "size": 12.0 }
+  },
+
+  "background": {
+    "colour": "background",
+    // 脸框：按要求去掉最外面那一圈线框 —— thickness 0 即不开脸框。
+    // 想让某个皮肤重新开脸框：把 thickness 写回线宽（如 2.5）即可，cornerRadius 0 会画切角双层框
+    "outline": { "colour": "structure", "inset": 6, "cornerRadius": 0, "thickness": 0.0 }
+    // 换成整幅背景贴图： "image": "assets/background.png"
+  },
+
+  // 异形窗口（3c）：mask 是一张与画布等大的 alpha 蒙版，
+  // alpha > 128 处属于窗口，其余裁掉。mode: auto = 仅 Standalone 真异形。
+  "shape": {
+    "mode": "auto"
+    // "mask": "assets/shape.png"
+  },
+
+  // 动态 shader 背景（3b）：source 指向你自己的片元着色器，
+  // uniform 表见 docs/skin-guide.md 第 5 节。GL 不可用时自动降级。
+  "shader": {
+    // "source": "shaders/flow.glsl",
+    // "fallbackImage": "assets/background.png",
+    "params": {}
+  },
+
+  // 按控件类型给默认值，元素里可以逐项覆盖
+  "defaults": {
+    "knob": {
+      // 旋钮用纵向多帧条：第 1 帧 = 最小角度，最后一帧 = 最大角度
+      // "assets": { "filmstrip": "assets/knob.png", "frames": 64, "layout": "vertical" },
+      "params": { "angleStart": 216, "angleEnd": 504 },
+      "colour": "accent"
+    },
+    "label":  { "font": "label", "colour": "text" }
+    // 按钮 / 下拉框 / 输入框 / 数值框的字体默认沿用 JUCE 的默认字号（当前外观就是这样）。
+    // 想统一改成自己的字号，取消下面几行的注释即可：
+    // "button": { "font": "value" },
+    // "combo":  { "font": "value" },
+    // "textEditor": { "font": "value" },
+    // "valueBox": { "font": "value" }
+  },
+
+  // 元素：id 必须与 docs/skin-guide.md 第 4 节的表一致
+  "elements": [
+    // 标题栏刻意留空：插件界面不显示名称（text 为空串，标签即不可见）
+    { "id": "title",         "type": "label",      "rect": [ 16,  16, 688,  24], "text": "", "justification": "left", "font": "title" },
+
+    { "id": "presetPrev",    "type": "button",     "rect": [ 16,  46,  26,  26], "text": "<" },
+    { "id": "presetNext",    "type": "button",     "rect": [ 44,  46,  26,  26], "text": ">" },
+    { "id": "preset",        "type": "combo",      "rect": [ 80,  46, 374,  26] },
+    { "id": "presetName",    "type": "textEditor", "rect": [464,  46, 130,  26], "placeholder": "新预设名" },
+    { "id": "presetSave",    "type": "button",     "rect": [598,  46,  56,  26], "text": "Save" },
+    { "id": "presetDelete",  "type": "button",     "rect": [658,  46,  46,  26], "text": "Del" },
+
+    { "id": "typeLabel",     "type": "label",      "rect": [ 24,  90, 156,  18], "text": "Type" },
+    { "id": "type",          "type": "combo",      "rect": [ 36, 158, 132,  28] },
+
+    { "id": "mixLabel",      "type": "label",      "rect": [196,  90, 156,  18], "text": "Mix" },
+    { "id": "mix",           "type": "knob",       "rect": [196, 108, 156, 129] },
+
+    { "id": "decayLabel",    "type": "label",      "rect": [368,  90, 156,  18], "text": "Decay" },
+    { "id": "decay",         "type": "knob",       "rect": [368, 108, 156, 129] },
+
+    { "id": "preDelayLabel", "type": "label",      "rect": [540,  90, 156,  18], "text": "Pre-Delay" },
+    { "id": "preDelay",      "type": "knob",       "rect": [540, 108, 156, 129] },
+
+    { "id": "modLabel",      "type": "label",      "rect": [ 24, 253, 156,  18], "text": "Mod" },
+    { "id": "mod",           "type": "knob",       "rect": [ 24, 271, 156, 129] },
+
+    { "id": "highDampLabel", "type": "label",      "rect": [196, 253, 156,  18], "text": "High Damp" },
+    { "id": "highDamp",      "type": "knob",       "rect": [196, 271, 156, 129] },
+
+    { "id": "lowDampLabel",  "type": "label",      "rect": [368, 253, 156,  18], "text": "Low Damp" },
+    { "id": "lowDamp",       "type": "knob",       "rect": [368, 271, 156, 129] },
+
+    { "id": "shimmerLabel",  "type": "label",      "rect": [540, 253, 156,  18], "text": "Shimmer" },
+    { "id": "shimmer",       "type": "knob",       "rect": [540, 271, 156, 129] }
+  ]
+}
