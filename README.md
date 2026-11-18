@@ -1,33 +1,29 @@
 # OnlyObsessionRemained
 
-A reverb plugin — three mutually independent reverb algorithms (plate, room,
-spring) plus shimmer, built on JUCE 8 and shipping as VST3 and a standalone app.
-The interface is entirely vector-drawn and driven by a skin manifest.
+一款混响插件 —— 三套彼此独立的混响算法（plate / room / spring）加 shimmer，基于 JUCE 8，输出 VST3 与独立程序。界面全部矢量绘制，由皮肤清单驱动。
 
-> Source comments are in Chinese; this README is in English for accessibility.
+> 源码注释是中文，本文件是默认（中文）说明；英文版见 [README.en.md](README.en.md)。
 
-**English** | [中文](README.zh-CN.md)
+**中文** | [English](README.en.md)
 
-## Download
+## 下载
 
-Prebuilt Windows x64 binaries (standalone `.exe` + `.vst3`) are attached to the
-[Releases](../../releases) page. Unpack the zip, run the `.exe`, or copy the
-`.vst3` into `C:\Program Files\Common Files\VST3`.
+Windows x64 预编译二进制（独立程序 `.exe` + `.vst3`）挂在 [Releases](../../releases) 页。解压后直接运行 `.exe`，或把 `.vst3` 放进 `C:\Program Files\Common Files\VST3`。
 
-## Parameters
+## 参数
 
-| Parameter | Range | Notes |
+| 参数 | 范围 | 说明 |
 | --- | --- | --- |
-| Type | Plate / Room / Spring | Crossfaded over 120 ms; the outgoing tank keeps ringing while it fades |
-| Mix | 0 – 100 % | Wet/dry |
-| Decay | 0 – 100 % | `RT60 = 0.25 * 120^decay` seconds, identical across all three tanks |
-| Pre-delay | 0 – 200 ms | Fractional-sample accurate |
-| Mod | 0 – 100 % | Slow, mutually incommensurate triangle LFOs on the read pointers |
-| High Damp | 0 – 100 % | Blended low-pass in the feedback path |
-| Low Damp | 0 – 100 % | Blended high-pass in the feedback path |
-| Shimmer | 0 – 100 % | Octave-up pitch shifter inside the feedback loop |
+| Type | Plate / Room / Spring | 切换时 120 ms 交叉淡变，旧腔体在淡出期间继续响 |
+| Mix | 0 – 100 % | 湿/干比 |
+| Decay | 0 – 100 % | `RT60 = 0.25 * 120^decay` 秒，三种腔体映射一致 |
+| Pre-delay | 0 – 200 ms | 分数样本精度 |
+| Mod | 0 – 100 % | 读取指针上叠加多个彼此不成整数比的慢速三角 LFO |
+| High Damp | 0 – 100 % | 反馈路径里的混合式低通 |
+| Low Damp | 0 – 100 % | 反馈路径里的混合式高通 |
+| Shimmer | 0 – 100 % | 反馈环内的升八度移调 |
 
-## Build
+## 构建
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
@@ -35,97 +31,72 @@ cmake --build build --config Release
 ctest --test-dir build --output-on-failure
 ```
 
-Requirements: CMake 3.22+, a C++17 compiler, and network access on the first
-configure — JUCE 8.0.15 is fetched with `FetchContent` and pinned to that exact
-tag. On Windows, build from a Visual Studio developer shell.
+要求：CMake 3.22+、支持 C++17 的编译器；首次配置需要联网 —— JUCE 8.0.15 由 `FetchContent` 拉取并锁死在该 tag。Windows 上请在 Visual Studio 开发者命令行里构建。
 
-Artifacts (Ninja/Release):
+产物（Ninja/Release）：
 
-| Target | Path |
+| 目标 | 路径 |
 | --- | --- |
-| Standalone app | `build/OnlyObsessionRemained_artefacts/Release/Standalone/OnlyObsessionRemained.exe` |
+| 独立程序 | `build/OnlyObsessionRemained_artefacts/Release/Standalone/OnlyObsessionRemained.exe` |
 | VST3 | `build/OnlyObsessionRemained_artefacts/Release/VST3/OnlyObsessionRemained.vst3` |
 
-With the Visual Studio generator the same two live under
-`build/OnlyObsessionRemained_artefacts/Release/`.
+用 Visual Studio 生成器时，这两个位于同一层
+`build/OnlyObsessionRemained_artefacts/Release/` 下。
 
-`-DSKIN_NAME=<dir>` selects which `skins/<dir>` is packed into the binary; the
-default is `default`.
+`-DSKIN_NAME=<目录名>` 选择把 `skins/<目录名>` 打包进二进制，默认是 `default`。
 
-## What is here
+## 目录结构
 
-| Path | Contents |
+| 路径 | 内容 |
 | --- | --- |
-| `Source/PluginProcessor.*` | Audio processor: parameter state, block splitting, type crossfade |
-| `Source/PluginEditor.*` | Editor shell and parameter bindings |
-| `Source/params/` | Single source of truth for the eight parameters |
-| `Source/presets/` | Factory presets and preset manager |
-| `Source/dsp/ReverbEngine.*` | Chooses the active tank, smoothing, shimmer routing |
-| `Source/dsp/tanks/` | The three reverb algorithms |
-| `Source/dsp/core/` | Building blocks: fractional delay line, allpass, one-pole low/high pass, triangle LFO, soft saturator, octave pitch shifter |
-| `Source/ui/` | Vector HUD, skin loader, skin designer, GLSL background, window shaping |
-| `skins/default/skin.json` | Manifest of the built-in look (colours, fonts, rects, labels) |
-| `tools/skin_pack.cpp` | Packs a skin directory into generated C++ at configure time |
-| `offline/PlateOfflineTest.cpp` | Verification harness (see below) |
+| `Source/PluginProcessor.*` | 音频处理器：参数状态、分块处理、Type 交叉淡变 |
+| `Source/PluginEditor.*` | 编辑器外壳与参数绑定 |
+| `Source/params/` | 八个参数的单一事实源 |
+| `Source/presets/` | 出厂预设与预设管理 |
+| `Source/dsp/ReverbEngine.*` | 选择活动腔体、参数平滑、shimmer 路由 |
+| `Source/dsp/tanks/` | 三套混响算法 |
+| `Source/dsp/core/` | 基础积木：分数延迟线、全通、一阶低/高通、三角 LFO、软饱和器、八度移调器 |
+| `Source/ui/` | 矢量 HUD、皮肤加载、皮肤设计器、GLSL 背景、窗口异形 |
+| `skins/default/skin.json` | 内置外观清单（颜色、字体、位置尺寸、文本） |
+| `tools/skin_pack.cpp` | 配置阶段把皮肤目录打包成生成的 C++ |
+| `offline/PlateOfflineTest.cpp` | 验证 harness（见下） |
 
-## Design notes
+## 设计说明
 
-**Damping is a blend, not a series filter.** In every tank the feedback path
-applies `y = x + k * (filtered - x)`, where `k` is the High/Low Damp parameter.
-At `k = 0` the path is bit-transparent, so "no damping" means the same thing in
-all three algorithms and RT60 values are comparable across them. A fixed 15 Hz
-DC blocker sits in every feedback path, because a transparent high-pass would
-otherwise let DC accumulate with a loop gain of up to `1/(1-g)`.
+**阻尼是混合，而非串联滤波。** 三个腔体的反馈路径都是 `y = x + k * (filtered - x)`，`k` 就是 High/Low Damp 参数。`k = 0` 时该路径逐比特透明，因此"不加阻尼"在三种算法里含义完全一致，各自的 RT60 也可以横向比较。每条反馈路径上都固定挂了一个 15 Hz 直流阻断，因为完全透明的高通会让直流以最高 `1/(1-g)` 的环路增益累积。
 
-**Loop gains are calibrated per delay line** so every line in a network reaches
--60 dB at the same moment. Using one shared gain makes short lines decay first
-and leaves the tail dominated by the longest line, which sounds muddy.
+**环路增益按延迟线逐条标定**，让网络里每条线在同一时刻衰减到 -60 dB。若所有线共用一个增益，短线会先衰完，尾巴被最长的那条线占据，听起来就"糊"。
 
-**RT60 mapping is identical across the three algorithms**:
-`RT60 = 0.25 * 120^decay`. Parameters are normalised 0..1.
+**三种算法的 RT60 映射完全相同**：`RT60 = 0.25 * 120^decay`。参数一律归一化到 0..1。
 
-**Modulation** offsets delay-line read pointers with slow, mutually
-incommensurate triangle LFOs. At `mod = 0` the fractional read degenerates to
-an integer read, so the tank is bit-identical to a static one.
+**调制**用多个彼此不成整数比的慢速三角 LFO 偏移延迟线的读取指针。`mod = 0` 时分数读取退化为整数读取，腔体与静态腔体逐比特一致。
 
-**Type switching crossfades** instead of resetting: both tanks run for 120 ms
-with equal-power gains, and the outgoing tank is only reset once it is silent.
-A switch requested mid-fade is queued rather than dropped.
+**切换 Type 用交叉淡变**而不是重置：两个腔体同时跑 120 ms，等功率交叉；旧腔体在完全静音后才被重置。淡变中途再次请求切换会排队，不会丢。
 
-**Feedback saturation** is a soft clip with a knee at 0.7 that approaches an
-asymptote of 2.0. It is bit-transparent below the knee; each tank uses its own
-drive so the knee lands at roughly the same wet-output level.
+**反馈路饱和**是拐点在 0.7、渐近于 2.0 的软削波。拐点以下逐比特透明；每个腔体用自己的 drive，使拐点大致落在相同的湿声输出电平上。
 
-**Room delays** are eight mutually prime lengths summing to about 0.90 s at
-48 kHz, which satisfies the modal density lower bound `sum >= 0.15 * RT60 * fs`
-up to roughly 6 s of RT60.
+**Room 的延迟**取八条互质长度，48 kHz 下总和约 0.90 s，从而满足模态密度下界 `sum >= 0.15 * RT60 * fs`，可支撑到约 6 s 的 RT60。
 
-**The UI only draws.** Layout is a manifest plus per-block transforms stored in
-`hud-layout.json` next to the plugin state, with a version field. The current
-layout ships as the compiled-in default, so a fresh install looks the same
-everywhere. If the GPU cannot compile the background shader, the editor falls
-back to a CPU-drawn path.
+**界面只负责画。** 布局由清单加每个板块的变换组成，存在插件状态旁边的 `hud-layout.json` 里，并带版本号。当前布局作为编译进程序的默认值，所以新安装的机器上外观一致。GPU 无法编译背景着色器时，编辑器退回 CPU 绘制通路。
 
-## What the harness verifies
+## harness 验证了什么
 
-`plate_offline_test` runs 22 checks and exits non-zero if any fails. It links
-only the three tanks, no JUCE, no host:
+`plate_offline_test` 共跑 22 项检查，任一项失败就以非零码退出。它只链接三个腔体，不需要 JUCE，也不需要宿主：
 
-- impulse response: peak, first arrival, echo density, RT60 by EDC extrapolation
-- Decay → RT60 calibration for all three tanks (measured vs nominal ratio)
-- monotonicity of RT60 in Decay
-- High Damp shortens the high band; Low Damp shortens the low band
-- wet/dry loudness at the default setting
-- pre-delay: first arrival shifts by exactly the requested number of samples
-- stability: no NaN, no self-oscillation at extreme settings
-- spring dispersion: low frequencies arrive measurably later than high ones
-- pitch shifter: octave-up spectrum, anti-aliasing fold-back level
-- saturator: curve properties and THD across input levels
-- hot-signal compression stays mild rather than turning into limiting
+- 冲激响应：峰值、首次到达、回声密度、由 EDC 外推的 RT60
+- 三个腔体的 Decay → RT60 标定（实测与标称的比值）
+- RT60 随 Decay 单调
+- High Damp 缩短高频带；Low Damp 缩短低频带
+- 默认参数下的湿/干响度
+- 预延迟：首次到达精确后移指定样本数
+- 稳定性：极值参数下无 NaN、无自激
+- 弹簧色散：低频可测地晚于高频到达
+- 移调器：升八度频谱、抗混叠折返电平
+- 饱和器：曲线性质与各输入电平下的 THD
+- 热信号下的压缩保持轻微，不退化成限幅
 
-Typical output ends with a per-section table and `结论：全部检查通过`
-("all checks passed").
+典型输出以分节表格结尾，最后一行是 `结论：全部检查通过`。
 
-## License
+## 许可证
 
-MIT — see [LICENSE](LICENSE).
+MIT —— 见 [LICENSE](LICENSE)。
