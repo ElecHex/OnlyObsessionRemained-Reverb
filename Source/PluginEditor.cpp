@@ -177,6 +177,7 @@ OnlyObsessionRemainedEditor::OnlyObsessionRemainedEditor (OnlyObsessionRemainedP
     processor.presetManager.addChangeListener (this);
     skin::SkinBundle::getInstance().addChangeListener (this);
 
+#if OOR_ENABLE_SKIN_DESIGNER
     // ---- 皮肤设计器的编辑层（默认隐藏，Ctrl+Shift+E 打开）----
     designerOverlay.onSelectionChanged = [this] (const juce::String& id)
     {
@@ -363,6 +364,7 @@ OnlyObsessionRemainedEditor::OnlyObsessionRemainedEditor (OnlyObsessionRemainedP
             });
         }
     }
+#endif
 
     if constexpr (kLegacySkinUiEnabled)
         rebuildPresetList();
@@ -591,8 +593,10 @@ void OnlyObsessionRemainedEditor::applySkin()
     else
         resized();
 
+#if OOR_ENABLE_SKIN_DESIGNER
     if (designerOverlay.isVisible())
         refreshDesignerItems();   // 尺寸没变时 resized() 不会被调用，这里补一次
+#endif
 
     // 皮肤可能换了着色器源码与帧率
     shaderBackground.loadFromSkin();
@@ -781,17 +785,21 @@ void OnlyObsessionRemainedEditor::resized()
     // 控件图层要跟随控件尺寸：布局落定后统一同步一次
     refreshControlLayerOverlays();
 
+#if OOR_ENABLE_SKIN_DESIGNER
     designerOverlay.setBounds (getLocalBounds());
+#endif
 
     if (hudView != nullptr)
         hudView->setBounds (getLocalBounds());
 
+#if OOR_ENABLE_SKIN_DESIGNER
     // 3e：编辑层要知道画布在窗口里的位置（画出出血区与画布边框），以及形状蒙版（画轮廓）
     designerOverlay.setCanvasInfo (s.canvasRect(),
                                    shouldClipPainting() ? s.shapeMask() : juce::Image());
 
     if (designerOverlay.isVisible())
         refreshDesignerItems();
+#endif
 
     // 宿主（或独立运行外壳）改过窗口尺寸后，之前设的区域是按旧尺寸算的，必须重算。
     // 签名缓存会挡掉"尺寸没变"的重复调用，所以这里每帧调也不心疼。
@@ -1021,8 +1029,10 @@ void OnlyObsessionRemainedEditor::changeListenerCallback (juce::ChangeBroadcaste
 
         // 皮肤换了：设计器面板里的着色器编辑区也必须跟着换文件，
         // 否则用户会在新皮肤上"应用"上一套皮肤的源码。
+#if OOR_ENABLE_SKIN_DESIGNER
         if (designerWindow != nullptr)
             designerWindow->onSkinChanged();
+#endif
 
         return;
     }
@@ -1063,7 +1073,11 @@ bool OnlyObsessionRemainedEditor::keyPressed (const juce::KeyPress& key)
         // 旧皮肤 / 设计器入口：HUD 为唯一界面时全部停用
         case 'O': if constexpr (kLegacySkinUiEnabled) { chooseSkinFolder(); } return true;
         case 'R': if constexpr (kLegacySkinUiEnabled) { reloadSkin(); }        return true;
-        case 'E': if constexpr (kLegacySkinUiEnabled) { toggleDesigner(); }    return true;
+        case 'E':
+#if OOR_ENABLE_SKIN_DESIGNER
+            if constexpr (kLegacySkinUiEnabled) { toggleDesigner(); }
+#endif
+            return true;
         case 'S': toggleShaderBackground(); return true;
         case 'A': openAudioSettings();      return true;   // 无标题栏的异形皮肤顶上标题栏入口
 
@@ -1488,6 +1502,7 @@ void OnlyObsessionRemainedEditor::openAudioSettings()
 // 皮肤设计器（绘图软件式的：拖动改布局 + 改形态/交互 + 实时导入贴图）
 // =======================================================================
 
+#if OOR_ENABLE_SKIN_DESIGNER
 bool OnlyObsessionRemainedEditor::designerAvailable() const
 {
     return processor.wrapperType == juce::AudioProcessor::wrapperType_Standalone;
@@ -1515,6 +1530,7 @@ juce::Rectangle<int> OnlyObsessionRemainedEditor::elementBounds (const juce::Str
 
     return {};
 }
+#endif
 
 juce::Component* OnlyObsessionRemainedEditor::componentForElement (const juce::String& id)
 {
@@ -1537,6 +1553,7 @@ juce::Component* OnlyObsessionRemainedEditor::componentForElement (const juce::S
     return nullptr;
 }
 
+#if OOR_ENABLE_SKIN_DESIGNER
 void OnlyObsessionRemainedEditor::refreshDesignerItems()
 {
     const auto& s = skin::SkinBundle::getInstance().getCurrent();
@@ -1641,6 +1658,7 @@ void OnlyObsessionRemainedEditor::refreshDesignerItems()
 
     designerOverlay.setItems (std::move (items));
 }
+#endif
 
 void OnlyObsessionRemainedEditor::refreshControlLayerOverlays()
 {
@@ -1684,6 +1702,7 @@ void OnlyObsessionRemainedEditor::refreshControlLayerOverlays()
     }
 }
 
+#if OOR_ENABLE_SKIN_DESIGNER
 void OnlyObsessionRemainedEditor::toggleDesigner()
 {
     if constexpr (! kLegacySkinUiEnabled)
@@ -1759,3 +1778,4 @@ void OnlyObsessionRemainedEditor::toggleDesigner()
     showStatus (U8 ("编辑层已开：拖动元素改位置 / 右下角小方块改尺寸 / 方向键微调；"
                     "再按 Ctrl+Shift+E 退出编辑层试手感"), false);
 }
+#endif

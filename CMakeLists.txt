@@ -64,12 +64,14 @@ target_sources(OnlyObsessionRemained PRIVATE
     Source/dsp/tanks/RoomTank.cpp
     Source/dsp/tanks/SpringTank.cpp
     Source/ui/SkinBundle.cpp
-    Source/ui/SkinDesigner.cpp
     Source/ui/ShaderBackground.cpp
     Source/ui/SkinnedLookAndFeel.cpp
     Source/ui/WindowShaper.cpp
     Source/ui/HudView.cpp
 )
+
+# 旧皮肤设计器不随公开源码发布（见 PluginEditor.h 的 OOR_ENABLE_SKIN_DESIGNER）。
+target_compile_definitions(OnlyObsessionRemained PRIVATE OOR_ENABLE_SKIN_DESIGNER=0)
 
 target_include_directories(OnlyObsessionRemained PRIVATE Source)
 

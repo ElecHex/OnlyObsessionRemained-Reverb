@@ -4,12 +4,20 @@
 
 #include <map>
 
+// 皮肤设计器（旧路径）默认编入插件；公开构建把 OOR_ENABLE_SKIN_DESIGNER 置 0，
+// 从而不编译 SkinDesigner.cpp，编辑器也不再引用它。HUD 模式下设计器本来就不可达。
+#if ! defined (OOR_ENABLE_SKIN_DESIGNER)
+ #define OOR_ENABLE_SKIN_DESIGNER 1
+#endif
+
 #include "PluginProcessor.h"
 #include "ui/ControlLayerOverlay.h"
 #include "ui/HudView.h"
 #include "ui/ShaderBackground.h"
 #include "ui/SkinBundle.h"
-#include "ui/SkinDesigner.h"
+#if OOR_ENABLE_SKIN_DESIGNER
+ #include "ui/SkinDesigner.h"
+#endif
 #include "ui/SkinnedLookAndFeel.h"
 
 /**
@@ -168,6 +176,7 @@ private:
 
     // ---- 皮肤设计器（只在 Standalone 里开放，见 toggleDesigner）----
 
+#if OOR_ENABLE_SKIN_DESIGNER
     /** 设计器只在独立运行时可用的原因：DAW 里编辑皮肤会写到用户的皮肤目录，
         而且宿主窗口尺寸由宿主决定、拖拽体验很差。 */
     bool designerAvailable() const;
@@ -177,14 +186,15 @@ private:
     /** 把元素几何喂给编辑层（与真实控件 bounds 完全一致）。 */
     void refreshDesignerItems();
 
+    /** 元素 id → 当前布局矩形（清单没写矩形时用它兜底，设计器专用）。 */
+    juce::Rectangle<int> elementBounds (const juce::String& id) const;
+#endif
+
     /**
         同步控件图层渲染层：给带 `elements[].layers[]` 的控件挂透明子组件，
         控件尺寸变化后重设子组件 bounds，元素/图层消失时回收。
     */
     void refreshControlLayerOverlays();
-
-    /** 元素 id → 当前布局矩形（清单没写矩形时用它兜底）。 */
-    juce::Rectangle<int> elementBounds (const juce::String& id) const;
 
     juce::Component* componentForElement (const juce::String& id);
 
@@ -253,9 +263,11 @@ private:
 
     // 设计器
     Layout                  currentLayout;      // resized() 的结果，供编辑层与设计器读取
+#if OOR_ENABLE_SKIN_DESIGNER
     skin::SkinDocument      designerDocument;
     skin::DesignerOverlay   designerOverlay;
     std::unique_ptr<skin::DesignerWindow> designerWindow;
+#endif
 
     // 图层拖动过程中的临时矩形：只影响绘制，松手才写进清单并热重载
     std::map<juce::String, juce::Rectangle<int>> layerPreviewRects;
