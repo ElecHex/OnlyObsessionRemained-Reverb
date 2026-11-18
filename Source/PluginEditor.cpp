@@ -1453,7 +1453,9 @@ void OnlyObsessionRemainedEditor::showWindowMenu()
     menu.addItem (1, U8 ("音频设置…"), isStandalone());
     menu.addItem (2, U8 ("重新加载皮肤"));
     menu.addItem (3, U8 ("回到内置皮肤"));
+#if OOR_ENABLE_SKIN_DESIGNER
     menu.addItem (4, U8 ("打开皮肤目录"), designerDocument.getFolder().isDirectory());
+#endif
     menu.addSeparator();
     menu.addItem (5, U8 ("退出"), isStandalone());
 
@@ -1473,7 +1475,9 @@ void OnlyObsessionRemainedEditor::showWindowMenu()
             case 3: skin::SkinBundle::getInstance().loadBuiltIn();
                     showStatus (U8 ("已回到内置皮肤"), false);
                     return;
+#if OOR_ENABLE_SKIN_DESIGNER
             case 4: designerDocument.getFolder().revealToUser(); return;
+#endif
             case 5: if (auto* window = dynamic_cast<juce::DocumentWindow*> (getTopLevelComponent()))
                         window->closeButtonPressed();
                     return;
