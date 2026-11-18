@@ -8,6 +8,8 @@ hundred kilobytes of source and builds in seconds.
 
 > Source comments are in Chinese; this README is in English for accessibility.
 
+**English** | [中文](README.zh-CN.md)
+
 ## What is here
 
 | Path | Contents |
